@@ -1,6 +1,7 @@
 #![allow(unused)]
 
 use std::*;
+use std::cmp;
 
 fn main() {
     let number = 3;

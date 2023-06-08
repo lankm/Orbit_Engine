@@ -1,13 +1,12 @@
 #![allow(unused)]
 
-use rand::Rng;
-use std::*;
-use std::mem::*;
+use std::collections::{HashMap, BinaryHeap};
 
-fn test(x: i32) {
-
-}
 fn main() {
-    let mut num = 5;
-    println!("{num}");
+    let vec = vec![1,2,5,4];
+    let heap = BinaryHeap::from(vec);
+
+    for n in heap.iter() {
+        println!("{n}");
+    }
 }

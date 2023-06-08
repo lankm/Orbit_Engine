@@ -30,7 +30,7 @@ fn main() {
         print!("{number} ");
         number -= 1;
         number > 0
-    } {};
+    } {}
     println!("do while");
 
     // while let loop
