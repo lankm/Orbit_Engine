@@ -1,10 +1,2 @@
-For the first bit I'm just going to be messing around in rust. Since you are reading this, the actual implementation will happen later. Also the name say's engine but thats a bit of a stretch. I'm new to this idea so I don't know how presentable it will be.
-
-# Orbit Engine
-A project to get myself introduced into rust and performance programing.
-
-## purpose
-The purpose of this is to demonstrate proper orbital mechanincs which are not present in some space games. These games have more 'Star Wars'-like physics instead of embracing the challenges of realistic travel. It should be more akin to KSP but we'll see.
-
-## limitations
-Fundamentally, this engine will be designed around newtonian/keplerian mechanics. Einstien's Relativity is just a bit too complex for computers in general.
+# Rust Shenanigans
+Was a repo for an 'orbit-engine'. Might be one day but honestly, I'm using this repo to learn rust inside and out. Will be messing around with things like fixed-point numbers, octrees, a unit system, and maybe a custom data structure or two. Really a lot of prototyping because if I do anything, I want to do it right.
