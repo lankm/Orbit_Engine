@@ -3,6 +3,61 @@
 
 use std::f32::consts::PI;
 
+pub fn rot_x(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
+    let x = pos.0;
+    let mut y = pos.1;
+    let mut z = pos.2;
+
+    if z==0.0 && y==0.0 {
+        return (x, y, z);
+    }
+        
+    let r = (y*y+z*z).sqrt(); // radius from axis
+    let mut theta = (z/y).atan(); // angle from plane
+    theta += if y<0.0 {PI} else {0.0}; // atan correction
+    theta += angle; // applying rotating
+
+    y = r*theta.cos();
+    z = r*theta.sin();
+    return ( x, y, z );
+}
+pub fn rot_y(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
+    let mut x = pos.0;
+    let y = pos.1;
+    let mut z = pos.2;
+
+    if x==0.0 && z==0.0 {
+        return (x, y, z);
+    }
+        
+    let r = (x*x+z*z).sqrt(); // radius from axis
+    let mut theta = (x/z).atan(); // angle from axis
+    theta += if z<0.0 {PI} else {0.0}; // atan correction
+    theta += angle; // applying rotating
+
+    z = r*theta.cos();
+    x = r*theta.sin();
+    return ( x, y, z );
+}
+pub fn rot_z(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
+    let mut x = pos.0;
+    let mut y = pos.1;
+    let z = pos.2;
+
+    if x==0.0 && y==0.0 {
+        return (x, y, z);
+    }
+        
+    let r = (x*x+y*y).sqrt(); // radius from axis
+    let mut theta = (y/x).atan(); // angle from axis
+    theta += if x<0.0 {PI} else {0.0}; // atan correction
+    theta += angle; // applying rotating
+
+    x = r*theta.cos();
+    y = r*theta.sin();
+    return ( x, y, z );
+}
+
 pub struct Orbit {
     e: f32, // eccentricity
     a: f32, // semimajor axis
@@ -36,35 +91,21 @@ impl Orbit {
 
         return E;
     }
-    pub fn pos(&self, M: f32) -> (f32, f32) {
-        let pos_2d = self.pos_2d(M); // simple 2d
-        let pos_rot = self.pos_rot(pos_2d); // apply argument of periapsis
-        // let pos_inc = self.pos_inc(pos_rot);
-        return pos_rot;
+    pub fn pos(&self, M: f32) -> (f32, f32, f32) {
+        let mut pos = self.pos_elliptic(M);
+        pos = rot_z(pos, self.w); // apply argument of periapsis
+        pos = rot_y(pos, self.i); // apply inclination
+        pos = rot_z(pos, self.o); // apply longitude of the ascending node
+        return pos;
     }
-    fn pos_2d(&self, M: f32) -> ( f32, f32 ) {
+    fn pos_elliptic(&self, M: f32) -> ( f32, f32, f32 ) {
         let E = self.E(M);
     
         let x = self.a*(E.cos()-self.e);
         let y = self.b*E.sin();
 
-        return ( x, y );
+        return ( x, y, 0.0 );
     }
-    fn pos_rot(&self, pos_2d: (f32, f32)) -> (f32, f32) {
-        let mut x = pos_2d.0;
-        let mut y = pos_2d.1;
-        
-        let r = (x*x+y*y).sqrt();
-        let mut theta = (y/x).atan() + self.w;
-        theta += if x<0.0 {PI} else {0.0}; // atan correction
-
-        x = r*theta.cos();
-        y = r*theta.sin();
-        return ( x, y );
-    }
-    // fn pos_inc(&self, pos_rot: (f32, f32)) -> (f32, f32, f32) {
-        
-    // }
 
     fn a(e: f32, b: f32) -> f32 {
         return b*( 1.0/(1.0-e*e) ).sqrt();
