@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 #![allow(unused)]
 
+pub mod angle;
+
 use std::f32::consts::PI;
 
 pub fn rot_x(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
@@ -82,7 +84,7 @@ impl Orbit {
         }
     }
 
-    pub fn E(&self, M: f32) -> f32 {
+    fn E(&self, M: f32) -> f32 {
         let mut E: f32 = 0.0;
 
         for i in 0..1000 {
@@ -92,15 +94,14 @@ impl Orbit {
         return E;
     }
     pub fn pos(&self, M: f32) -> (f32, f32, f32) {
-        let mut pos = self.pos_elliptic(M);
+        let E = self.E(M);
+        let mut pos = self.pos_elliptic(E);
         pos = rot_z(pos, self.w); // apply argument of periapsis
-        pos = rot_y(pos, self.i); // apply inclination
+        pos = rot_x(pos, self.i); // apply inclination
         pos = rot_z(pos, self.o); // apply longitude of the ascending node
         return pos;
     }
-    fn pos_elliptic(&self, M: f32) -> ( f32, f32, f32 ) {
-        let E = self.E(M);
-    
+    fn pos_elliptic(&self, E: f32) -> ( f32, f32, f32 ) {
         let x = self.a*(E.cos()-self.e);
         let y = self.b*E.sin();
 
