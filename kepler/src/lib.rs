@@ -61,13 +61,13 @@ pub fn rot_z(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
 }
 
 pub struct Orbit {
-    e: f32, // eccentricity
+    e: f32, // eccentricity                     0-1
     a: f32, // semimajor axis
         b: f32, // semiminor axis
 
-    i: f32, // inclination
-    o: f32, // longitude of the ascending node
-    w: f32, // argument of periapsis
+    i: f32, // inclination                      0-pi
+    o: f32, // longitude of the ascending node  0-2pi
+    w: f32, // argument of periapsis            0-2pi
 
     t0: f32, // time of periapsis passage
 }

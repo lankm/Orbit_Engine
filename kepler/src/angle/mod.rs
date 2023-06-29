@@ -14,6 +14,45 @@ impl r16 {
         num /= 2.0*PI;
         r16 { angle: num as u16, }
     }
+
+    pub fn sin(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn cos(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn tan(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn csc(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn sec(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn cot(self) -> r16 {
+        r16 { angle: 0 }
+    }
+
+    pub fn asin(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn acos(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn atan(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn acsc(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn asec(self) -> r16 {
+        r16 { angle: 0 }
+    }
+    pub fn acot(self) -> r16 {
+        r16 { angle: 0 }
+    }
+
 }
 impl ops::Add<r16> for r16 {
     type Output = r16;
