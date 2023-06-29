@@ -1,3 +1,9 @@
+/* README
+ * This is a set of orbital parameters. Currently everything is floats, but
+ * This should change to fixed point numbers due to the loss of precision.
+ * Space has no center so it should not be more accurate depending on the time
+ * or location.
+ */
 #![allow(non_snake_case)]
 #![allow(unused)]
 
@@ -6,18 +12,13 @@ pub mod angle;
 use std::f32::consts::PI;
 
 pub fn rot_x(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
-    let x = pos.0;
+    let x     = pos.0;
     let mut y = pos.1;
     let mut z = pos.2;
 
-    if z==0.0 && y==0.0 {
-        return (x, y, z);
-    }
-        
-    let r = (y*y+z*z).sqrt(); // radius from axis
-    let mut theta = (z/y).atan(); // angle from plane
-    theta += if y<0.0 {PI} else {0.0}; // atan correction
-    theta += angle; // applying rotating
+    let r = y.hypot(z);         // radius from axis
+    let mut theta = z.atan2(y); // angle from plane
+    theta += angle;                  // applying rotating
 
     y = r*theta.cos();
     z = r*theta.sin();
@@ -25,17 +26,12 @@ pub fn rot_x(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
 }
 pub fn rot_y(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
     let mut x = pos.0;
-    let y = pos.1;
+    let y     = pos.1;
     let mut z = pos.2;
-
-    if x==0.0 && z==0.0 {
-        return (x, y, z);
-    }
         
-    let r = (x*x+z*z).sqrt(); // radius from axis
-    let mut theta = (x/z).atan(); // angle from axis
-    theta += if z<0.0 {PI} else {0.0}; // atan correction
-    theta += angle; // applying rotating
+    let r = x.hypot(z);         // radius from axis
+    let mut theta = x.atan2(z); // angle from axis
+    theta += angle;                  // applying rotating
 
     z = r*theta.cos();
     x = r*theta.sin();
@@ -43,20 +39,15 @@ pub fn rot_y(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
 }
 pub fn rot_z(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
     let mut x = pos.0;
-    let mut y = pos.1;
-    let z = pos.2;
-
-    if x==0.0 && y==0.0 {
-        return (x, y, z);
-    }
+    let mut y = pos.1;          // coordinates
+    let z     = pos.2;
         
-    let r = (x*x+y*y).sqrt(); // radius from axis
-    let mut theta = (y/x).atan(); // angle from axis
-    theta += if x<0.0 {PI} else {0.0}; // atan correction
-    theta += angle; // applying rotating
-
+    let r = x.hypot(y);         // radius from axis
+    let mut theta = y.atan2(x); // angle from axis
+    theta += angle;                  // applying rotating
+    
     x = r*theta.cos();
-    y = r*theta.sin();
+    y = r*theta.sin();               // calculating change
     return ( x, y, z );
 }
 
@@ -93,15 +84,17 @@ impl Orbit {
 
         return E;
     }
-    pub fn pos(&self, M: f32) -> (f32, f32, f32) {
+    pub fn pos(&self, M: f32) -> (f64, f64, f64) {
         let E = self.E(M);
         let mut pos = self.pos_elliptic(E);
         pos = rot_z(pos, self.w); // apply argument of periapsis
         pos = rot_x(pos, self.i); // apply inclination
         pos = rot_z(pos, self.o); // apply longitude of the ascending node
-        return pos;
+        return (pos.0 as f64, pos.1 as f64, pos.2 as f64);
     }
     fn pos_elliptic(&self, E: f32) -> ( f32, f32, f32 ) {
+        // reference direction is +x
+        // 'up' is +z
         let x = self.a*(E.cos()-self.e);
         let y = self.b*E.sin();
 
