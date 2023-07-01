@@ -9,9 +9,9 @@
 
 pub mod angle;
 
-use std::f32::consts::PI;
+use std::{f64::consts::PI, char::MAX};
 
-pub fn rot_x(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
+pub fn rot_x(pos: (f64, f64, f64), angle: f64) -> (f64, f64, f64) {
     let x     = pos.0;
     let mut y = pos.1;
     let mut z = pos.2;
@@ -24,7 +24,7 @@ pub fn rot_x(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
     z = r*theta.sin();
     return ( x, y, z );
 }
-pub fn rot_y(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
+pub fn rot_y(pos: (f64, f64, f64), angle: f64) -> (f64, f64, f64) {
     let mut x = pos.0;
     let y     = pos.1;
     let mut z = pos.2;
@@ -37,7 +37,7 @@ pub fn rot_y(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
     x = r*theta.sin();
     return ( x, y, z );
 }
-pub fn rot_z(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
+pub fn rot_z(pos: (f64, f64, f64), angle: f64) -> (f64, f64, f64) {
     let mut x = pos.0;
     let mut y = pos.1;          // coordinates
     let z     = pos.2;
@@ -52,18 +52,18 @@ pub fn rot_z(pos: (f32, f32, f32), angle: f32) -> (f32, f32, f32) {
 }
 
 pub struct Orbit {
-    e: f32, // eccentricity                     0-1
-    a: f32, // semimajor axis
-        b: f32, // semiminor axis
+    e: f64, // eccentricity                     0-1
+    a: f64, // semimajor axis
+        b: f64, // semiminor axis
 
-    i: f32, // inclination                      0-pi
-    o: f32, // longitude of the ascending node  0-2pi
-    w: f32, // argument of periapsis            0-2pi
+    i: f64, // inclination                      0-pi
+    o: f64, // longitude of the ascending node  0-2pi
+    w: f64, // argument of periapsis            0-2pi
 
-    t0: f32, // time of periapsis passage
+    t0: f64, // time of periapsis passage
 }
 impl Orbit {
-    pub fn new( e: f32, a: f32, i: f32, o: f32, w: f32, t0: f32 ) -> Orbit {
+    pub fn new( e: f64, a: f64, i: f64, o: f64, w: f64, t0: f64 ) -> Orbit {
         return Orbit { 
             e, 
             a, 
@@ -75,24 +75,35 @@ impl Orbit {
         }
     }
 
-    fn E(&self, M: f32) -> f32 {
-        let mut E: f32 = 0.0;
+    fn E(&self, M: f64, total: &mut u32) -> f64 {
+        const PRECISION: f64 = 1e-14;   // min stable number
+        const MAX_ITER: u32 = 1000;     // for safety purposes
+        const STEP_PERCENT: f64 = 0.75; // 0.75 - best performance TODO: make dynamic (e, diff, precision)
+        let mut E: f64 = M;             // initial estimate
 
-        for i in 0..1000 {
-            E = M + self.e*E.sin();
+        for i in 0..MAX_ITER {
+            let E_next = M + self.e*E.sin(); // calculate next step
+            let difference = E_next-E;
+            
+            print!("{i:>6}: {} {}\r", (E_next-E).abs(), E);
+            *total += i;
+
+            if difference.abs() < PRECISION { println!(); return E_next; } 
+            else { E = E + STEP_PERCENT*( difference ); }
         }
+        println!();
 
         return E;
     }
-    pub fn pos(&self, M: f32) -> (f64, f64, f64) {
-        let E = self.E(M);
+    pub fn pos(&self, M: f64, total: &mut u32) -> (f64, f64, f64) {
+        let E = self.E(M, total);
         let mut pos = self.pos_elliptic(E);
         pos = rot_z(pos, self.w); // apply argument of periapsis
         pos = rot_x(pos, self.i); // apply inclination
         pos = rot_z(pos, self.o); // apply longitude of the ascending node
         return (pos.0 as f64, pos.1 as f64, pos.2 as f64);
     }
-    fn pos_elliptic(&self, E: f32) -> ( f32, f32, f32 ) {
+    fn pos_elliptic(&self, E: f64) -> ( f64, f64, f64 ) {
         // reference direction is +x
         // 'up' is +z
         let x = self.a*(E.cos()-self.e);
@@ -101,20 +112,20 @@ impl Orbit {
         return ( x, y, 0.0 );
     }
 
-    fn a(e: f32, b: f32) -> f32 {
+    fn a(e: f64, b: f64) -> f64 {
         return b*( 1.0/(1.0-e*e) ).sqrt();
     }
-    fn b(e: f32, a: f32) -> f32 {
+    fn b(e: f64, a: f64) -> f64 {
         return a*(1.0-e*e).sqrt();
     }
-    fn e(a: f32, b: f32) -> f32 {
+    fn e(a: f64, b: f64) -> f64 {
         return (1.0-( (b*b)/(a*a) )).sqrt();
     }
     
-    pub fn apoapsis(&self) -> f32 {
+    pub fn apoapsis(&self) -> f64 {
         return self.a - self.periapsis();
     }
-    pub fn periapsis(&self) -> f32 {
+    pub fn periapsis(&self) -> f64 {
         return ( self.a - self.a*self.e )/2.0
     }
 }
