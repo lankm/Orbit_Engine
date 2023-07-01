@@ -3,6 +3,7 @@
 
 
 use std::{ops::{Add, Mul}, time::Instant, f64::consts::PI};
+use kepler::*;
 
 
 fn main() {
@@ -10,8 +11,6 @@ fn main() {
     print_coords();
 }
 fn pi_test() {
-    use std::f64::consts::PI;
-
     let pi = 1 as f64;
     let mut one = pi/PI;
 
@@ -88,10 +87,8 @@ const COUNT: usize = 10;
 //     }
 // }
 fn print_coords() {
-    use kepler::*;
-    use std::f64::consts::PI;
-    let mut total: u32 = 0;
-    let orbit = Orbit::new(0.9999, 5.0, 0.0, 0.0, PI/2.0, 0.0);
+    let mut stats = Stat::new();
+    let orbit = Orbit::new(0.99, 5.0, 0.0, 0.0, PI/2.0, 0.0);
 
     const COUNT: i32 = 1000;
     const STEP: f64 = (2.0*PI/(COUNT as f64));
@@ -99,8 +96,9 @@ fn print_coords() {
     for i in 0..COUNT {
         let M = STEP*(i as f64);
         
-        let pos = orbit.pos(M, &mut total);
+        let pos = orbit.pos(M, &mut stats);
         //println!("({}, {}, {})", pos.0, pos.1, pos.2);
     }
-    println!("{total}");
+    println!("mean: {}", stats.mean());
+    println!("max:  {}", stats.max);
 }

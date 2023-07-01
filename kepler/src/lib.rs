@@ -75,28 +75,31 @@ impl Orbit {
         }
     }
 
-    fn E(&self, M: f64, total: &mut u32) -> f64 {
+    fn E(&self, M: f64, stats: &mut Stat) -> f64 {
         const PRECISION: f64 = 1e-14;   // min stable number
         const MAX_ITER: u32 = 1000;     // for safety purposes
-        let step_percent: f64 = (1.0 - self.e/4.0); // TODO: make dynamic (e, diff, precision)
+        let mut step_percent: f64 = (1.0 - self.e/2.0); // TODO: make dynamic (e, diff, precision)
         let mut E: f64 = M;             // initial estimate
 
+        let mut tot_iter = MAX_ITER;
         for i in 0..MAX_ITER {
             let E_next = M + self.e*E.sin(); // calculate next step
             let difference = E_next-E;
+            step_percent = (1.0 + self.e*E.cos()/2.0);
             
-            print!("{i:>6}: {} {}\r", (E_next-E).abs(), E);
-            *total += i;
+            //print!("{i:>6}: {} -> {:<20}\r", (E_next-E).abs(), E);
 
-            if difference.abs() < PRECISION { println!(); return E_next; } 
+            if difference.abs() < PRECISION { tot_iter = i; break; } 
             else { E = E + step_percent*( difference ); }
         }
-        println!();
+        stats.entry(tot_iter as f64, Some(1));
+        
+        //println!();
 
         return E;
     }
-    pub fn pos(&self, M: f64, total: &mut u32) -> (f64, f64, f64) {
-        let E = self.E(M, total);
+    pub fn pos(&self, M: f64, stats: &mut Stat) -> (f64, f64, f64) {
+        let E = self.E(M, stats);
         let mut pos = self.pos_elliptic(E);
         pos = rot_z(pos, self.w); // apply argument of periapsis
         pos = rot_x(pos, self.i); // apply inclination
@@ -128,4 +131,25 @@ impl Orbit {
     pub fn periapsis(&self) -> f64 {
         return ( self.a - self.a*self.e )/2.0
     }
+}
+
+pub struct Stat {
+    pub total: f64,
+    pub count: u64,
+    pub max: f64,
+    pub min: f64,
+}
+impl Stat {
+    pub fn new() -> Stat{
+        return Stat { total: 0.0, count: 0, max: f64::MIN, min : f64::MAX };
+    }
+    pub fn entry(&mut self, val: f64, count: Option<u64>) {
+        self.total += val;
+        self.count += count.unwrap_or(1);
+        self.max = if val > self.max {val} else {self.max};
+        self.min = if val < self.min {val} else {self.min};
+    }
+    pub fn mean(&self) -> f64 {
+        return self.total / self.count as f64;
+    } 
 }
