@@ -75,31 +75,31 @@ impl Orbit {
         }
     }
 
-    fn E(&self, M: f64, stats: &mut Stat) -> f64 {
+    /* E calculation
+     * Because the result in undeterministic, more work went into this function.
+     * At high eccentricity, it becomes more unstable at the periapsis.
+     * Tweaks can be made to improve stability at the cost of average performance.
+     */
+    fn E(&self, M: f64) -> f64 {
         const PRECISION: f64 = 1e-14;   // min stable number
-        const MAX_ITER: u32 = 1000;     // for safety purposes
-        let mut step_percent: f64 = (1.0 - self.e/2.0); // TODO: make dynamic (e, diff, precision)
+        const MAX_ITER: u32 = 10000;    // for safety purposes
         let mut E: f64 = M;             // initial estimate
 
         let mut tot_iter = MAX_ITER;
         for i in 0..MAX_ITER {
             let E_next = M + self.e*E.sin(); // calculate next step
             let difference = E_next-E;
-            step_percent = (1.0 + self.e*E.cos()/2.0);
-            
-            //print!("{i:>6}: {} -> {:<20}\r", (E_next-E).abs(), E);
+            let step_mult = 1.0 / (1.0-self.e*E.cos()); // derivitive
 
-            if difference.abs() < PRECISION { tot_iter = i; break; } 
-            else { E = E + step_percent*( difference ); }
+            if difference.abs() < PRECISION { return E_next; }
+            else                            { E = E + step_mult*( difference ); }
         }
-        stats.entry(tot_iter as f64, Some(1));
-        
-        //println!();
 
         return E;
     }
-    pub fn pos(&self, M: f64, stats: &mut Stat) -> (f64, f64, f64) {
-        let E = self.E(M, stats);
+
+    pub fn pos(&self, M: f64) -> (f64, f64, f64) {
+        let E = self.E(M);
         let mut pos = self.pos_elliptic(E);
         pos = rot_z(pos, self.w); // apply argument of periapsis
         pos = rot_x(pos, self.i); // apply inclination

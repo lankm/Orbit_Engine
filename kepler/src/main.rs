@@ -7,6 +7,7 @@ use kepler::*;
 
 
 fn main() {
+    //let mut stats = Stat::new();
     //graph();
     print_coords();
 }
@@ -87,18 +88,15 @@ const COUNT: usize = 10;
 //     }
 // }
 fn print_coords() {
-    let mut stats = Stat::new();
-    let orbit = Orbit::new(0.99, 5.0, 0.0, 0.0, PI/2.0, 0.0);
+    let orbit = Orbit::new(0.5, 5.0, 0.0, 0.0, 0.0, 0.0);
 
     const COUNT: i32 = 1000;
-    const STEP: f64 = (2.0*PI/(COUNT as f64));
+    const STEP: f64 = (PI/(COUNT as f64));
 
     for i in 0..COUNT {
         let M = STEP*(i as f64);
         
-        let pos = orbit.pos(M, &mut stats);
-        //println!("({}, {}, {})", pos.0, pos.1, pos.2);
+        let pos = orbit.pos(M);
+        //println!("({}, {})", pos.0, pos.1);
     }
-    println!("mean: {}", stats.mean());
-    println!("max:  {}", stats.max);
 }
