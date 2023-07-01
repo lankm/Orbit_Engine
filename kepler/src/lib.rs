@@ -78,7 +78,7 @@ impl Orbit {
     fn E(&self, M: f64, total: &mut u32) -> f64 {
         const PRECISION: f64 = 1e-14;   // min stable number
         const MAX_ITER: u32 = 1000;     // for safety purposes
-        const STEP_PERCENT: f64 = 0.75; // 0.75 - best performance TODO: make dynamic (e, diff, precision)
+        let step_percent: f64 = (1.0 - self.e/4.0); // TODO: make dynamic (e, diff, precision)
         let mut E: f64 = M;             // initial estimate
 
         for i in 0..MAX_ITER {
@@ -89,7 +89,7 @@ impl Orbit {
             *total += i;
 
             if difference.abs() < PRECISION { println!(); return E_next; } 
-            else { E = E + STEP_PERCENT*( difference ); }
+            else { E = E + step_percent*( difference ); }
         }
         println!();
 

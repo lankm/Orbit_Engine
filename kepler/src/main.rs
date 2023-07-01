@@ -91,7 +91,7 @@ fn print_coords() {
     use kepler::*;
     use std::f64::consts::PI;
     let mut total: u32 = 0;
-    let orbit = Orbit::new(0.01, 5.0, 0.0, 0.0, PI/2.0, 0.0);
+    let orbit = Orbit::new(0.9999, 5.0, 0.0, 0.0, PI/2.0, 0.0);
 
     const COUNT: i32 = 1000;
     const STEP: f64 = (2.0*PI/(COUNT as f64));
