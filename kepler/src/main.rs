@@ -7,9 +7,9 @@ use kepler::*;
 
 
 fn main() {
-    //let mut stats = Stat::new();
-    //graph();
-    print_coords();
+    let orbit = Orbit::new(0.8, 5.0, PI*123.41, PI*54.4, PI*126.3, 0.0);
+    graph(&orbit, 100, 400, 24);
+    print_coords(&orbit, 100);
 }
 fn pi_test() {
     let pi = 1 as f64;
@@ -32,71 +32,68 @@ fn pi_test() {
     println!("MIN: {} with {}", min_idx, min);
 }
 
-const COUNT: usize = 10;
-// fn graph() {
-//     use kepler::*;
-//     use plotters::prelude::*;
-//     // image format setup
-//     let area = BitMapBackend::gif(
-//         "images/animated.gif", 
-//         (256, 256), 
-//         80
-//     ).unwrap().into_drawing_area();
+fn graph(orbit: &Orbit, count: u32, px: u32, fps: u32) {
+    use kepler::*;
+    use plotters::prelude::*;
+    // image format setup
+    let area = BitMapBackend::gif(
+        "images/animated.gif", 
+        (px, px), 
+        1000/fps
+    ).unwrap().into_drawing_area();
     
-//     // charting graph setup
-//     let mut chart = ChartBuilder::on(&area)
-//         .margin(0)
-//         .build_cartesian_3d(-5.0..5.0, -5.0..5.0, -5.0..5.0)
-//         .unwrap();
+    // charting graph setup
+    let size = orbit.a;
+    let mut chart = ChartBuilder::on(&area)
+        .margin(0)
+        .build_cartesian_3d(-size..size, -size..size, -size..size)
+        .unwrap();
 
-//     //iterating
-//     for i in 0..=100 {
-//         // background
-//         area.fill(&WHITE).unwrap();
+    //iterating
+    for i in 0..=100 {
+        // background
+        area.fill(&WHITE).unwrap();
 
-//         // view setup
-//         chart.with_projection(|mut pb| {
-//             pb.pitch = 0.2;
-//             pb.yaw = 0.0314159265358979323*2.0*i as f64;
-//             pb.scale = 0.7;
-//             pb.into_matrix()
-//         });
-//         // orbit setup
-//         let mut orbit = Orbit::new(0.8, 5.0, PI/8.0, PI/2.0, PI/2.0, 0.0);
-//         const COUNT: usize = 100;
-//         const STEP: f64 = (2.0*PI/(COUNT as f64));
-//         // orbit render. the renderer has their axies messed up
-//         chart.draw_series(LineSeries::new(
-//         (0..COUNT+1).map(|M| {let c = orbit.pos(STEP*(M as f64)); (c.0, c.2, -c.1)}),
-//         &BLACK
-//         )).unwrap();
-//         // x y and z axes
-//         chart.draw_series(LineSeries::new(
-//             (-2..=10).map(|M| (M as f64, 0.0, 0.0)),
-//             &RED
-//         )).unwrap();
-//         chart.draw_series(LineSeries::new(
-//             (-2..=10).map(|M| (0.0, 0.0, -M as f64)),
-//             &GREEN
-//         )).unwrap();
-//         chart.draw_series(LineSeries::new(
-//             (-2..=10).map(|M| (0.0, M as f64, 0.0)),
-//             &BLUE
-//         )).unwrap();
+        // view setup
+        chart.with_projection(|mut pb| {
+            pb.pitch = 0.2;
+            pb.yaw = 2.0*PI/100.0*i as f64; //rotate and seemlessly loop
+            pb.scale = 0.7;
+            pb.into_matrix()
+        });
+
+        // orbit render. the renderer has their axies messed up
+        let step: f64 = (2.0*PI/(count as f64));
+        chart.draw_series(LineSeries::new(
+        (0..count+1).map(|M| {let c = orbit.pos(step*(M as f64)); (c.0, c.2, -c.1)}),
+        &BLACK
+        )).unwrap();
+
+        // x y and z axes
+        chart.draw_series(LineSeries::new(
+            (-1..=2).map(|M| (size*M as f64, 0.0, 0.0)),
+            &RED
+        )).unwrap();
+        chart.draw_series(LineSeries::new(
+            (-1..=2).map(|M| (0.0, 0.0, -size*M as f64)),
+            &GREEN
+        )).unwrap();
+        chart.draw_series(LineSeries::new(
+            (-1..=2).map(|M| (0.0, size*M as f64, 0.0)),
+            &BLUE
+        )).unwrap();
         
-//         area.present().unwrap();
-//     }
-// }
-fn print_coords() {
-    let orbit = Orbit::new(0.5, 5.0, 0.0, 0.0, 0.0, 0.0);
+        // print to gif
+        area.present().unwrap();
+    }
+}
+fn print_coords(orbit: &Orbit, count: u32) {
+    let step: f64 = (2.0*PI/(count as f64));
 
-    const COUNT: i32 = 1000;
-    const STEP: f64 = (PI/(COUNT as f64));
-
-    for i in 0..COUNT {
-        let M = STEP*(i as f64);
+    for i in 0..count {
+        let M = step*(i as f64);
         
         let pos = orbit.pos(M);
-        //println!("({}, {})", pos.0, pos.1);
+        println!("({}, {})", pos.0, pos.1);
     }
 }

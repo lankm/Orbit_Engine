@@ -52,15 +52,15 @@ pub fn rot_z(pos: (f64, f64, f64), angle: f64) -> (f64, f64, f64) {
 }
 
 pub struct Orbit {
-    e: f64, // eccentricity                     0-1
-    a: f64, // semimajor axis
-        b: f64, // semiminor axis
+    pub e: f64, // eccentricity                     0-1
+    pub a: f64, // semimajor axis
+    pub b: f64, // semiminor axis
 
-    i: f64, // inclination                      0-pi
-    o: f64, // longitude of the ascending node  0-2pi
-    w: f64, // argument of periapsis            0-2pi
+    pub i: f64, // inclination                      0-pi
+    pub o: f64, // longitude of the ascending node  0-2pi
+    pub w: f64, // argument of periapsis            0-2pi
 
-    t0: f64, // time of periapsis passage
+    pub t0: f64, // time of periapsis passage
 }
 impl Orbit {
     pub fn new( e: f64, a: f64, i: f64, o: f64, w: f64, t0: f64 ) -> Orbit {
@@ -77,27 +77,32 @@ impl Orbit {
 
     /* E calculation
      * Because the result in undeterministic, more work went into this function.
-     * At high eccentricity, it becomes more unstable at the periapsis.
-     * Tweaks can be made to improve stability at the cost of average performance.
+     * Stable for all e. Yay!!
+     * max average steps: 4.87125 (e = 1, M = 0-2PI)
+     * min average steps: 0.00000 (e = 0)
+     * max steps needed:  N/A     (e = 1, M = 0)
+     * min steps needed:  0       (e = 0)
+     * Very slowly starts to break if e=1 and M=0 as expected.
      */
     fn E(&self, M: f64) -> f64 {
-        const PRECISION: f64 = 1e-14;   // min stable number
-        const MAX_ITER: u32 = 10000;    // for safety purposes
-        let mut E: f64 = M;             // initial estimate
+        const PRECISION: f64 = 9e-16;   // min stable number
+        const MAX_ITER: u32 = 100;      // if e = ~1 and M = ~0
+        let mut E: f64 = M % (2.0*PI);  // initial estimate
 
-        let mut tot_iter = MAX_ITER;
         for i in 0..MAX_ITER {
-            let E_next = M + self.e*E.sin(); // calculate next step
+            let E_next = M + self.e*E.sin(); // calculate next guess
             let difference = E_next-E;
-            let step_mult = 1.0 / (1.0-self.e*E.cos()); // derivitive
-
-            if difference.abs() < PRECISION { return E_next; }
-            else                            { E = E + step_mult*( difference ); }
+            
+            if difference.abs() < PRECISION {
+                return E_next;
+            } else {
+                let step_mult = 1.0 / (1.0-self.e*E.cos()); // derivitive.
+                E = E + step_mult*( difference )%(1.4);          // 1.4 causes the best results. Only god knows why.
+            }
         }
 
         return E;
     }
-
     pub fn pos(&self, M: f64) -> (f64, f64, f64) {
         let E = self.E(M);
         let mut pos = self.pos_elliptic(E);
