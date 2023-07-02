@@ -76,13 +76,14 @@ impl Orbit {
     }
 
     /* E calculation
-     * Because the result in undeterministic, more work went into this function.
-     * Stable for all e. Yay!!
+     * Newton-Raphson method, but made it stable. Getting the remainder of the
+     * result is required due to the function being non-continuous.
+     * Very slowly starts to break if e=1 and M=0.
+     * 
      * max average steps: 4.87125 (e = 1, M = 0-2PI)
      * min average steps: 0.00000 (e = 0)
      * max steps needed:  N/A     (e = 1, M = 0)
      * min steps needed:  0       (e = 0)
-     * Very slowly starts to break if e=1 and M=0 as expected.
      */
     fn E(&self, M: f64) -> f64 {
         const PRECISION: f64 = 9e-16;   // min stable number
@@ -91,13 +92,13 @@ impl Orbit {
 
         for i in 0..MAX_ITER {
             let E_next = M + self.e*E.sin(); // calculate next guess
-            let difference = E_next-E;
+            let E_diff = E_next - E;
             
-            if difference.abs() < PRECISION {
+            if E_diff.abs() < PRECISION {
                 return E_next;
             } else {
-                let step_mult = 1.0 / (1.0-self.e*E.cos()); // derivitive.
-                E = E + step_mult*( difference )%(1.4);          // 1.4 causes the best results. Only god knows why.
+                let E_prime = 1.0 - self.e*E.cos();
+                E = E + ( E_diff/E_prime ) % 1.4; // 1.4 causes the best results
             }
         }
 
@@ -145,7 +146,7 @@ pub struct Stat {
     pub min: f64,
 }
 impl Stat {
-    pub fn new() -> Stat{
+    pub fn new() -> Stat {
         return Stat { total: 0.0, count: 0, max: f64::MIN, min : f64::MAX };
     }
     pub fn entry(&mut self, val: f64, count: Option<u64>) {
