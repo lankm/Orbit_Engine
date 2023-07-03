@@ -7,12 +7,10 @@ use kepler::*;
 
 
 fn main() {
-    let orbit = Orbit::new(0.99999999999, 5.0, PI*123.41, PI*54.4, PI*126.3, 0.0);
-    //graph(&orbit, 100, 400, 24);
-    const COUNT: u32 = 10000;
-    let instant = Instant::now();
+    let orbit = Orbit::new(1.5, 5.0, 0.0, 0.0, 0.0, 0.0);
+    // graph(&orbit, 100, 200, 24);
+    const COUNT: u32 = 100;
     print_coords(&orbit, COUNT);
-    println!("pos/sec: {}", COUNT as f64 / instant.elapsed().as_secs_f64());
 }
 fn pi_test() {
     let pi = 1 as f64;
@@ -91,12 +89,12 @@ fn graph(orbit: &Orbit, count: u32, px: u32, fps: u32) {
     }
 }
 fn print_coords(orbit: &Orbit, count: u32) {
-    let step: f64 = (2.0*PI/(count as f64));
+    let step: f64 = (4.0*PI/(count as f64));
 
     for i in 0..count {
         let M = step*(i as f64);
         
         let pos = orbit.pos(M);
-        //println!("({}, {})", pos.0, pos.1);
+        // println!("({}, {})", pos.0, pos.1);
     }
 }
