@@ -64,11 +64,13 @@ pub struct Orbit {
 }
 impl Orbit {
     // TODO: change a/b to periapsis. then calculate a/b
-    pub fn new( e: f64, a: f64, i: f64, o: f64, w: f64, t0: f64 ) -> Orbit {
+    pub fn new( mut e: f64, periapsis: f64, i: f64, o: f64, w: f64, t0: f64 ) -> Orbit {
+        e = e.abs(); // safety feature
+        let a = Orbit::a_from_periapsis(periapsis, e);
         return Orbit { 
             e, 
-            a, 
-            b: Orbit::b(e, a), 
+            a,
+            b: Orbit::b_from_a(a, e), 
             i, 
             o, 
             w,
@@ -92,6 +94,7 @@ impl Orbit {
         pos = rot_z(pos, self.w); // apply argument of periapsis
         pos = rot_x(pos, self.i); // apply inclination
         pos = rot_z(pos, self.o); // apply longitude of the ascending node
+
         return (pos.0 as f64, pos.1 as f64, pos.2 as f64);
     }
     /* E calculation
@@ -129,32 +132,52 @@ impl Orbit {
 
         return ( x, y, 0.0 );
     }
+    /* H calculation
+     * Newton-Raphson method. Due to hyperbolic functions being exponential, the calculations
+     * are more complex and are reordered but still the same. Generally doesn't take more than
+     * 10 iterations.
+     * Only breaks if you travel faster than light next to a black hole.
+     */
     fn H(&self, M: f64) -> f64 {
-        const PRECISION: f64 = 5e-15;   // min stable number
+        if M == 0.0 { return 0.0 }
+
+        const PRECISION: f64 = 4e-15;   // min stable number
         const MAX_ITER: u32 = 100;      // for safety
-        let mut H: f64 = M;             // initial estimate
+        let mut H: f64 = ((M.abs()+(6.0*M.abs()).powf(0.25))/self.e).asinh();             // initial estimate
+        H = if M.is_sign_negative() {-H} else {H};
 
+        let mut iter = MAX_ITER;
         for i in 0..MAX_ITER {
-            let H_next = -M + self.e*H.sinh(); // calculate next guess
+            // let H_next = -M + self.e*H.sinh(); // calculate next guess. H.sinh() can be inf
+            let p1 = 1.0/(1.0/H.tanh() - 1.0/(self.e*H.sinh())); // done to avoid inf/inf
+            let p2 = M/(self.e*H.cosh() - 1.0);
+            let p3 = H/(self.e*H.cosh() - 1.0);
+            let H_next = H - p1 + p2 + p3;
             let H_diff = H_next - H;
-
+            
             if H_diff.abs() < PRECISION {
                 return H_next;
             } else {
-                let H_prime = -1.0 + self.e*H.cosh();
-                H = H - ( H_diff/H_prime );
+                // let H_prime = -1.0 + self.e*H.cosh(); // H.cosh() can be inf
+                // H = H - ( H_diff/H_prime );
+                H = H_next;
             }
+            
         }
-        
         return H;
     }
     fn pos_hyperbolic(&self, H: f64) -> ( f64, f64, f64 ) {
         let x = self.a*(H.cosh()-self.e);
         let y = self.b*H.sinh();
 
-        println!("({H})");
-        println!("[{x}, {y}, 0.0]");
         return ( x, y, 0.0 );
+    }
+
+    fn a_from_periapsis(periapsis: f64, e: f64) -> f64 {
+        return periapsis/(1.0-e);
+    }
+    fn b_from_a(a: f64, e: f64) -> f64 {
+        return a*(1.0-e*e).abs().sqrt();
     }
 
     fn a(e: f64, b: f64) -> f64 {

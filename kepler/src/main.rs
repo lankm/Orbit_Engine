@@ -7,10 +7,12 @@ use kepler::*;
 
 
 fn main() {
-    let orbit = Orbit::new(1.5, 5.0, 0.0, 0.0, 0.0, 0.0);
-    // graph(&orbit, 100, 200, 24);
+    let orbit = Orbit::new(1.1, 5.0, PI/4.0, 0.0, 0.0, 0.0);
     const COUNT: u32 = 100;
-    print_coords(&orbit, COUNT);
+    graph(&orbit, COUNT, 200, 24);
+    //print_coords(&orbit, COUNT);
+    //let mut stat = Stat::new();
+    //orbit.pos(0.0000000001);
 }
 fn pi_test() {
     let pi = 1 as f64;
@@ -44,7 +46,7 @@ fn graph(orbit: &Orbit, count: u32, px: u32, fps: u32) {
     ).unwrap().into_drawing_area();
     
     // charting graph setup
-    let size = orbit.a;
+    let size = 5.0;
     let mut chart = ChartBuilder::on(&area)
         .margin(0)
         .build_cartesian_3d(-size..size, -size..size, -size..size)
@@ -57,7 +59,7 @@ fn graph(orbit: &Orbit, count: u32, px: u32, fps: u32) {
 
         // view setup
         chart.with_projection(|mut pb| {
-            pb.pitch = 0.2;
+            pb.pitch = 0.4;
             pb.yaw = 2.0*PI/100.0*i as f64; //rotate and seemlessly loop
             pb.scale = 0.7;
             pb.into_matrix()
@@ -66,7 +68,7 @@ fn graph(orbit: &Orbit, count: u32, px: u32, fps: u32) {
         // orbit render. the renderer has their axies messed up
         let step: f64 = (2.0*PI/(count as f64));
         chart.draw_series(LineSeries::new(
-        (0..count+1).map(|M| {let c = orbit.pos(step*(M as f64)); (c.0, c.2, -c.1)}),
+        (0..count+1).map(|j| {let c = orbit.pos(step*((j as i32-(count>>1) as i32) as f64)); (c.0, c.2, -c.1)}),
         &BLACK
         )).unwrap();
 
@@ -88,13 +90,20 @@ fn graph(orbit: &Orbit, count: u32, px: u32, fps: u32) {
         area.present().unwrap();
     }
 }
-fn print_coords(orbit: &Orbit, count: u32) {
+fn print_coords(orbit: &Orbit, mut count: u32) {
+    let mut stat = Stat::new();
+    
     let step: f64 = (4.0*PI/(count as f64));
+    count = count*10;
+    
 
     for i in 0..count {
-        let M = step*(i as f64);
+        let M = step*((i as i32-(count>>1) as i32) as f64);
         
         let pos = orbit.pos(M);
-        // println!("({}, {})", pos.0, pos.1);
+        //println!("({}, {})", pos.0, pos.1);
     }
+
+    println!("mean: {}", stat.mean());
+    println!("max:  {}", stat.max);
 }
