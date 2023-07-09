@@ -1,18 +1,17 @@
 #![allow(unused)]
 #![allow(non_snake_case)]
+#![allow(arithmetic_overflow)]
 
 
 use std::{ops::{Add, Mul}, time::Instant, f64::consts::PI};
 use kepler::*;
-
+use std::num::Wrapping;
 
 fn main() {
-    let orbit = Orbit::new(1.1, 5.0, PI/4.0, 0.0, 0.0, 0.0);
+    let orbit = Orbit::new(0.8, 5.0, PI/4.0, 0.0, 0.0, 0.0);
     const COUNT: u32 = 100;
     graph(&orbit, COUNT, 200, 24);
-    //print_coords(&orbit, COUNT);
-    //let mut stat = Stat::new();
-    //orbit.pos(0.0000000001);
+    print_coords(&orbit, COUNT);
 }
 fn pi_test() {
     let pi = 1 as f64;
@@ -91,8 +90,6 @@ fn graph(orbit: &Orbit, count: u32, px: u32, fps: u32) {
     }
 }
 fn print_coords(orbit: &Orbit, mut count: u32) {
-    let mut stat = Stat::new();
-    
     let step: f64 = (4.0*PI/(count as f64));
     count = count*10;
     
@@ -101,9 +98,6 @@ fn print_coords(orbit: &Orbit, mut count: u32) {
         let M = step*((i as i32-(count>>1) as i32) as f64);
         
         let pos = orbit.pos(M);
-        //println!("({}, {})", pos.0, pos.1);
+        println!("({}, {})", pos.0, pos.1);
     }
-
-    println!("mean: {}", stat.mean());
-    println!("max:  {}", stat.max);
 }
