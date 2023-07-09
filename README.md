@@ -1,2 +1,2 @@
-# Rust Shenanigans
-Was a repo for an 'orbit-engine'. Might be one day but honestly, I'm using this repo to learn rust inside and out. Will be messing around with things like fixed-point numbers, octrees, a unit system, and maybe a custom data structure or two. Really a lot of prototyping because if I do anything, I want to do it right.
+# Kepler Orbits
+I was testing out this idea as part of a possible physics engine. The benefits are that the position of an object is deterministic and has a time complexity of O(1). The downsides are that the calculations to determine orbital anomalies are complex. Additionally, orbital anomalies are angles so positions near the apoapsis are less precise than at the periapsis. This is especially true for hyperbolic orbits.
